@@ -15,7 +15,7 @@ public class SingleAgentDemo
         Console.WriteLine("This agent has:");
         Console.WriteLine("📊 Math Tools: Add, Multiply, Divide, Percentage");
         Console.WriteLine("⏰ Time Tools: Current time, Day of week, Month/Year");
-        Console.WriteLine("😂 Joke Tools: Fresh programming jokes from API");
+        Console.WriteLine("😂 Joke Tools: Fresh clean jokes from API");
         Console.WriteLine("💭 AI Knowledge: General chat and assistance");
         Console.WriteLine();
 
@@ -58,10 +58,11 @@ public class SingleAgentDemo
             {
                 Console.Write("🤖 Agent: ");
                 
-                // Enable automatic function calling - the LLM will choose which tools to use
+                // Configure function calling behavior
                 var settings = new OllamaPromptExecutionSettings
                 {
-                    FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
+                    FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(),
+                    Temperature = 0.1f
                 };
                 var arguments = new KernelArguments(settings);
                 
@@ -84,28 +85,28 @@ public class SingleAgentDemo
 /// </summary>
 public class MathTools
 {
-    [KernelFunction, Description("Add two numbers")]
+    [KernelFunction, Description("Add two numbers together (example: 5 + 3, what is 10 plus 15)")]
     public double Add(double a, double b)
     {
         Console.WriteLine($"🔧 [MATH TOOL] Adding {a} + {b}");
         return a + b;
     }
     
-    [KernelFunction, Description("Multiply two numbers")]
+    [KernelFunction, Description("Multiply two numbers together (example: 5 * 3, 20 times 200, what is 10 multiplied by 15)")]
     public double Multiply(double a, double b)
     {
         Console.WriteLine($"🔧 [MATH TOOL] Multiplying {a} × {b}");
         return a * b;
     }
     
-    [KernelFunction, Description("Divide two numbers")]
+    [KernelFunction, Description("Divide two specific numbers provided by the user")]
     public double Divide(double a, double b)
     {
         Console.WriteLine($"🔧 [MATH TOOL] Dividing {a} ÷ {b}");
         return b != 0 ? a / b : 0;
     }
     
-    [KernelFunction, Description("Calculate percentage of a number")]
+    [KernelFunction, Description("Calculate what percentage one number is of another, based on user's specific numbers")]
     public double Percentage(double number, double percent)
     {
         Console.WriteLine($"🔧 [MATH TOOL] Calculating {percent}% of {number}");
@@ -118,21 +119,21 @@ public class MathTools
 /// </summary>
 public class TimeTools
 {
-    [KernelFunction, Description("Get current date and time")]
+    [KernelFunction, Description("Get current date and time when user asks what time it is or for current date")]
     public string GetCurrentTime()
     {
         Console.WriteLine("🔧 [TIME TOOL] Getting current time");
         return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
     }
     
-    [KernelFunction, Description("Get current day of the week")]
+    [KernelFunction, Description("Get current day of the week when user asks what day it is")]
     public string GetDayOfWeek()
     {
         Console.WriteLine("🔧 [TIME TOOL] Getting day of week");
         return DateTime.Now.DayOfWeek.ToString();
     }
     
-    [KernelFunction, Description("Get current month and year")]
+    [KernelFunction, Description("Get current month and year when user asks for current month or year")]
     public string GetMonthYear()
     {
         Console.WriteLine("🔧 [TIME TOOL] Getting month and year");
@@ -147,19 +148,20 @@ public class JokeTools
 {
     private static readonly HttpClient httpClient = new HttpClient();
     
-    [KernelFunction, Description("Get a random programming joke from JokeAPI")]
+    [KernelFunction, Description("Tell a clean family-friendly joke when user asks for a joke, humor, or something funny")]
     public async Task<string> GetRandomJoke()
     {
-        Console.WriteLine("🔧 [JOKE TOOL] Fetching fresh programming joke from API");
+        Console.WriteLine("🔧 [JOKE TOOL] Fetching fresh clean joke from API");
         
         try
         {
-            var response = await httpClient.GetStringAsync("https://v2.jokeapi.dev/joke/Programming?type=single");
+            var response = await httpClient.GetStringAsync("https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,political,racist,sexist,explicit&type=single");
             var jokeData = JsonSerializer.Deserialize<JsonElement>(response);
             
             if (jokeData.TryGetProperty("joke", out var jokeElement))
             {
-                return jokeElement.GetString() ?? "Sorry, couldn't get the joke content!";
+                var joke = jokeElement.GetString() ?? "Sorry, couldn't get the joke content!";
+                return $"Here's a clean joke from the API: {joke}";
             }
             else
             {
